@@ -69,5 +69,5 @@ app.*.map.json
 /android/app/src/debug
 /android/app/src/profile
 /lib/firebase_options.dart
-/android/app/main/res/drawable-v21
+/android/app/src/main/res/drawable-v21/launch_background.xml
 /android/app/main/res/values-night
