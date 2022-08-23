@@ -1,6 +1,6 @@
 # awsquiz
 
-AWS Cloud Practitioner - Quiz
+Quiz - AWS Cloud Practitioner
 
 ## Getting Started
 

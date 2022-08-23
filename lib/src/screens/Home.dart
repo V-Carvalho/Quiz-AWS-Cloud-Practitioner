@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:awsquiz/src/screens/Simulated.dart';
 import 'package:awsquiz/src/helpers/Constants.dart';
 import 'package:awsquiz/src/helpers/MyInAppPurchase.dart';
+import 'package:awsquiz/src/controllers/HomeController.dart';
 
 class Home extends StatefulWidget {
   const Home({Key key}) : super(key: key);
@@ -12,12 +13,13 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
+  static HomeController homeController = HomeController();
   static MyInAppPurchase myInAppPurchase = MyInAppPurchase();
 
   @override
   void initState() {
     super.initState();
-    // Realizando conexão com a Google Play
+    // Realizando conexão com a Google Play Console - IAP
     myInAppPurchase.initConnectionSubscriptionStore(context).whenComplete(() {});
   }
 
@@ -108,24 +110,40 @@ class _HomeState extends State<Home> {
               //color: Colors.orange,
               alignment: Alignment.center,
               margin: const EdgeInsets.only(bottom: 5),
-              child: ListView.builder(
-                itemCount: contentList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      '* ${contentList[index]['content']}',
-                      style: TextStyle(
-                        fontFamily: 'AWS',
-                        color: myWhiteColor,
-                        fontWeight: FontWeight.normal,
-                        overflow: TextOverflow.visible,
-                        fontSize: MediaQuery.of(context).size.height * 1.5 / 100,
-                      ),
-                    ),
-                  );
+              child:
+
+              FutureBuilder(
+                future: homeController.getCourseContent(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError){
+                    return myEpisodesDataServerUnavailable(context);
+                  }
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                      return myCircularProgressIndicator(context, myWhiteColor);
+                    default:
+                      return ListView.builder(
+                        itemCount: snapshot.data.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '* ${snapshot.data[index]['content'].toString()}',
+                              style: TextStyle(
+                                fontFamily: 'AWS',
+                                color: myWhiteColor,
+                                fontWeight: FontWeight.normal,
+                                overflow: TextOverflow.visible,
+                                fontSize: MediaQuery.of(context).size.height * 1.5 / 100,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                  }
                 },
               ),
             ),
@@ -169,6 +187,34 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+
+
+  Widget myEpisodesDataServerUnavailable(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text(
+        'Servidor indisponível 😢',
+        style: TextStyle(
+          fontFamily: 'AWS',
+          color: myWhiteColor,
+          fontWeight: FontWeight.bold,
+          fontSize: MediaQuery.of(context).size.height * 2.5 / 100,
+        ),
+      ),
+    );
+  }
+
+
+  Widget myCircularProgressIndicator(BuildContext context, Color color) {
+    return Container(
+      alignment: Alignment.center,
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(color),
+      ),
+    );
+  }
+
+
 
   @override
   void dispose() {

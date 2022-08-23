@@ -1,5 +1,5 @@
 name: awsquiz
-description: AWS Cloud Practitioner - Quiz
+description: Quiz - AWS Cloud Practitioner
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
   wakelock: ^0.6.2
+  firebase_core: ^1.21.0
+  cloud_firestore: ^3.4.5
   unity_ads_plugin: ^0.3.6
   flutter_inapp_purchase: ^5.3.1
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock/wakelock.dart';
+import 'package:awsquiz/firebase_options.dart';
 import 'package:awsquiz/src/screens/Home.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:awsquiz/src/helpers/Constants.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 
@@ -26,6 +28,11 @@ void main() async {
     onFailed: (error, message) {
       print('Initialization Failed: $error $message');
     },
+  );
+
+  // FirebaseInitializeApp
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
   runApp(const MyApp());
