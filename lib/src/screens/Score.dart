@@ -199,6 +199,10 @@ class _ScoreState extends State<Score> {
     );
   }
 
+  Widget noBanner() {
+    return Container();
+  }
+
   Widget myBannerUnity() {
     return UnityBannerAd(
       placementId: 'Banner_Android',
@@ -212,10 +216,6 @@ class _ScoreState extends State<Score> {
         print('Banner failed to load');
       },
     );
-  }
-
-  Widget noBanner() {
-    return Container();
   }
 
   Widget myCircularProgressIndicator(BuildContext context, Color color) {

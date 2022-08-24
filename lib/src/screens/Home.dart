@@ -110,13 +110,11 @@ class _HomeState extends State<Home> {
               //color: Colors.orange,
               alignment: Alignment.center,
               margin: const EdgeInsets.only(bottom: 5),
-              child:
-
-              FutureBuilder(
+              child: FutureBuilder(
                 future: homeController.getCourseContent(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError){
-                    return myEpisodesDataServerUnavailable(context);
+                    return myServerUnavailable(context);
                   }
                   switch (snapshot.connectionState) {
                     case ConnectionState.none:
@@ -188,8 +186,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-
-  Widget myEpisodesDataServerUnavailable(BuildContext context) {
+  Widget myServerUnavailable(BuildContext context) {
     return Container(
       alignment: Alignment.center,
       child: Text(
@@ -204,7 +201,6 @@ class _HomeState extends State<Home> {
     );
   }
 
-
   Widget myCircularProgressIndicator(BuildContext context, Color color) {
     return Container(
       alignment: Alignment.center,
@@ -213,8 +209,6 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
-
 
   @override
   void dispose() {

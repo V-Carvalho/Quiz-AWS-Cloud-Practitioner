@@ -3,16 +3,16 @@ import 'package:rx_notifier/rx_notifier.dart';
 import 'package:awsquiz/src/screens/Score.dart';
 import 'package:awsquiz/src/helpers/Constants.dart';
 import 'package:awsquiz/src/widgets/MySnackBar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
 import 'package:awsquiz/src/helpers/MyInAppPurchase.dart';
-import 'package:awsquiz/src/helpers/QuestionsSimulated.dart';
 
 class SimulatedController {
 
   final adsIsLoaded = RxNotifier<bool>(false);
 
   final bannerChecked = RxNotifier<bool>(false); // TODO: false
-  final showSimulated = RxNotifier<bool>(true); // TODO: true
+  final showSimulated = RxNotifier<bool>(false); // TODO: true
 
   final questionNumber = RxNotifier<int>(0);
   final indexQuestion = RxNotifier<int>(0);
@@ -50,38 +50,48 @@ class SimulatedController {
   static MyInAppPurchase myInAppPurchase = MyInAppPurchase();
 
   Future<void> loadQuestion(BuildContext context) async {
-    // Se questão atual for menor que o tal de questões do simulado, carrega uma nova questão
-    if (indexQuestion.value < questionsSimulated.length) {
+
+    // Se questão atual for menor que 65, carrega uma nova questão
+    if (questionNumber.value < 65) {
       questionNumber.value += 1;
 
-      // Percorrendo as perguntas dentro do array(questionsSimulated), começando do index 0 e passando de 2 em 2 devido a estrutura do array
-      String pergunta = questionsSimulated[indexQuestion.value];
-      textQuestion.value = pergunta;
-      print('Pergunta: $pergunta');
-      indexQuestion.value += 2;
+      // Mostrar loading enquanto carrega outra questão
+      showSimulated.value = false;
 
-      // Percorrendo as resposta dentro do array(questionsSimulated), começando do index 1 e passando de 2 em 2 devido a estrutura do array
-      List resposta = questionsSimulated[indexAlternative.value];
-      // Percorrendo os textos das as respostas e quais estão certas ou erradas
-      for( var i = 0 ; i < resposta.length; i++ ) {
-        textFirstAlternative.value = resposta[0];
-        firstAlternativeIsCorrect.value = resposta[1];
+      // Realizando um select no banco onde o retorno tem que ser a pergunta conforme o id
+      QuerySnapshot questions = await FirebaseFirestore.instance.collection('questionsSimulated')
+          .where('id', isEqualTo: questionNumber.value)
+          .get(const GetOptions(source: Source.serverAndCache));
 
-        textSecondAlternative.value = resposta[2];
-        secondAlternativeIsCorrect.value = resposta[3];
+      textQuestion.value = questions.docs[0]['question'];
 
-        textThirdAlternative.value = resposta[4];
-        thirdAlternativeIsCorrect.value = resposta[5];
+      // Realizando um select no banco onde o retorno tem que ser as respostas conforme o id da questão
+      QuerySnapshot answers = await FirebaseFirestore.instance.collection('questionsSimulated')
+          .doc(questions.docs[0].id).collection('answers')
+          .get(const GetOptions(source: Source.serverAndCache));
 
-        textFourthAlternative.value = resposta[6];
-        fourthAlternativeIsCorrect.value = resposta[7];
+      // Percorrendo todos os docs(Respostas) retornados
+      for( var i = 0 ; i < answers.docs.length; i++ ) {
+        if (i == 0) {
+          textFirstAlternative.value = answers.docs[i]['answer'];
+          firstAlternativeIsCorrect.value = answers.docs[i]['correct'];
+        }
+        if (i == 1) {
+          textSecondAlternative.value = answers.docs[i]['answer'];
+          secondAlternativeIsCorrect.value = answers.docs[i]['correct'];
+        }
+        if (i == 2) {
+          textThirdAlternative.value = answers.docs[i]['answer'];
+          thirdAlternativeIsCorrect.value = answers.docs[i]['correct'];
+        }
+        if (i == 3) {
+          textFourthAlternative.value = answers.docs[i]['answer'];
+          fourthAlternativeIsCorrect.value = answers.docs[i]['correct'];
+        }
       }
 
-      print('${textFirstAlternative.value} - ${firstAlternativeIsCorrect.value}');
-      print('${textSecondAlternative.value} - ${secondAlternativeIsCorrect.value}');
-      print('${textThirdAlternative.value} - ${thirdAlternativeIsCorrect.value}');
-      print('${textFourthAlternative.value} - ${fourthAlternativeIsCorrect.value}');
-      indexAlternative.value += 2;
+      // Mostrar simulado, questão já carregada
+      showSimulated.value = true;
 
     } else {
       Navigator.push(
@@ -92,15 +102,16 @@ class SimulatedController {
         )),
       );
     }
+
   }
 
   void validateForm(BuildContext context) {
     // Verificando se algum checkbox foi selecionado
     if (
-      firstCheckboxIsSelected.value == true ||
-      secondCheckboxIsSelected.value == true||
-      thirdCheckboxIsSelected.value == true ||
-      fourthCheckboxIsSelected.value == true
+        firstCheckboxIsSelected.value == true ||
+        secondCheckboxIsSelected.value == true||
+        thirdCheckboxIsSelected.value == true ||
+        fourthCheckboxIsSelected.value == true
     ) {
       validateIsCorrect(context);
     } else {

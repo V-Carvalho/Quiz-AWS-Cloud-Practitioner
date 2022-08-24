@@ -15,7 +15,7 @@ class ScoreController {
     return percentageFormated;
   }
 
-// TODO: Parei aqui... Falta gerar os arrays com as questões reais e fazer o random dos 4 simulados
+// TODO: Parei aqui... Falta gerar o random das questões
 
 // TODO: Criar um timer na tela do simulado
 

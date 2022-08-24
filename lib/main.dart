@@ -6,6 +6,7 @@ import 'package:awsquiz/src/screens/Home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:awsquiz/src/helpers/Constants.dart';
 import 'package:unity_ads_plugin/unity_ads_plugin.dart';
+import 'package:awsquiz/src/helpers/EnvironmentVariables.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +22,7 @@ void main() async {
   // StartingUnityAdsSDK
   await UnityAds.init(
     testMode: true, // TODO: ever false
-    gameId: '4889883',
+    gameId: gameId,
     onComplete:() {
       print('UNITY ADS - Initialization Complete');
     },
