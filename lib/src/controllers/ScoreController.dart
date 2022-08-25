@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 
 class ScoreController {
@@ -15,9 +14,15 @@ class ScoreController {
     return percentageFormated;
   }
 
-// TODO: Parei aqui... Falta gerar o random das questões
 
-// TODO: Criar um timer na tela do simulado
+// TODO: testar se quando chega na questão 65 vai finalizar o quiz
+
+// TODO: testar o random das questões
+
+// TODO: testar se ao passar a ser assinante o banner some o o timer aparece
+
+
+// Falta desenvolver
 
 // TODO: Criar historico dos simulados na tela resultado
 

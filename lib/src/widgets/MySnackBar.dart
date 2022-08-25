@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:awsquiz/src/helpers/Constants.dart';
 
 class MySnackBar {
-  void showSnackBar(BuildContext context, String message) {
+  void showSnackBar(BuildContext context, String message, int time) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         elevation: 50,
@@ -16,7 +16,7 @@ class MySnackBar {
             fontSize: MediaQuery.of(context).size.height * 2 / 100
           )
         ),
-        duration: const Duration(seconds: 1)
+        duration: Duration(seconds: time)
       )
     );
   }

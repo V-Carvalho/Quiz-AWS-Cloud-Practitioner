@@ -22,10 +22,12 @@ class _SimulatedState extends State<Simulated> {
     super.initState();
     simulatedController.loadRewardAdsUnity();
     simulatedController.loadQuestion(context);
+    // Iniciando o timer do simulado -> 90 min
+    simulatedController.timerSimulated(context);
 
-    myInAppPurchase.checkStatusSubscription().then((isSubscriber) {
-      if(isSubscriber == true) {
-        simulatedController.bannerChecked.value = true;
+    myInAppPurchase.checkStatusSubscription().then((status) {
+      if(status == true) {
+        simulatedController.isSubscriber.value = true;
       }
     });
   }
@@ -75,11 +77,62 @@ class _SimulatedState extends State<Simulated> {
                   // color: Colors.purpleAccent,
                   alignment: Alignment.center,
                   margin: const EdgeInsets.only(top:10, bottom: 10),
-                  child: simulatedController.bannerChecked.value
-                      ?
+                  child: simulatedController.isSubscriber.value
+                    ?
                   noBanner()
-                      :
+                    :
                   myBannerUnity(), // TODO: BANNER ADS
+                ),
+              ),
+              Expanded(
+                flex: 0,
+                child: Container(
+                  // color: Colors.yellow,
+                  alignment: Alignment.center,
+                  child: simulatedController.isSubscriber.value
+                    ?
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          // color: Colors.tealAccent,
+                          alignment: Alignment.centerRight,
+                          margin: const EdgeInsets.only(bottom: 10, right: 2),
+                          child: Text(
+                            '${simulatedController.minutes.value.toString()} m',
+                            style: TextStyle(
+                              fontFamily: 'AWS',
+                              color: myWhiteColor,
+                              fontWeight: FontWeight.normal,
+                              overflow: TextOverflow.visible,
+                              fontSize: MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          // color: Colors.deepOrange,
+                          alignment: Alignment.centerLeft,
+                          margin: const EdgeInsets.only(bottom: 10, left: 2),
+                          child: Text(
+                            '${simulatedController.seconds.value.toString()} s',
+                            style: TextStyle(
+                              fontFamily: 'AWS',
+                              color: myWhiteColor,
+                              fontWeight: FontWeight.normal,
+                              overflow: TextOverflow.visible,
+                              fontSize: MediaQuery.of(context).size.height * 2 / 100,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                    :
+                  noTimer()
                 ),
               ),
               Expanded(
@@ -90,11 +143,11 @@ class _SimulatedState extends State<Simulated> {
                   child: Text(
                     'QUESTÃO ${simulatedController.questionNumber.value.toString()}/65',
                     style: TextStyle(
-                        fontFamily: 'AWS',
-                        color: myWhiteColor,
-                        fontWeight: FontWeight.bold,
-                        overflow: TextOverflow.visible,
-                        fontSize: MediaQuery.of(context).size.height * 1.8 / 100
+                      fontFamily: 'AWS',
+                      color: myWhiteColor,
+                      fontWeight: FontWeight.normal,
+                      overflow: TextOverflow.visible,
+                      fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
                     ),
                   ),
                 ),
@@ -102,262 +155,262 @@ class _SimulatedState extends State<Simulated> {
               Expanded(
                 flex: 1,
                 child: Container(
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.only(top:10, bottom: 10),
-                    decoration: const BoxDecoration(
-                      color: myWhiteColor,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        topRight: Radius.circular(10),
-                        bottomLeft: Radius.circular(10),
-                        bottomRight: Radius.circular(10),
-                      ),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                            blurRadius: 10,
-                            color: myShadowColor,
-                            offset: Offset(0.0, 0.75)
-                        )
-                      ],
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(top:10, bottom: 10),
+                  decoration: const BoxDecoration(
+                    color: myWhiteColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
                     ),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Container(
-                            // color: Colors.purple,
-                            alignment: Alignment.center,
-                            child: Text(
-                              simulatedController.textQuestion.value.toString(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'AWS',
-                                color: myDarkBlueColor,
-                                fontWeight: FontWeight.bold,
-                                overflow: TextOverflow.visible,
-                                fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
-                              ),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        blurRadius: 10,
+                        color: myShadowColor,
+                        offset: Offset(0.0, 0.75),
+                      )
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          // color: Colors.purple,
+                          alignment: Alignment.center,
+                          child: Text(
+                            simulatedController.textQuestion.value.toString(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'AWS',
+                              color: myDarkBlueColor,
+                              fontWeight: FontWeight.bold,
+                              overflow: TextOverflow.visible,
+                              fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
                             ),
                           ),
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            width: double.infinity,
-                            alignment: Alignment.center,
-                            margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
-                            decoration: BoxDecoration(
-                              // color: Colors.yellow,
-                              borderRadius: BorderRadius.circular(25),
-                              border:  Border.all(
-                                width: 3,
-                                color: simulatedController.firstAlternativeColor.value,
-                              ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            // color: Colors.yellow,
+                            borderRadius: BorderRadius.circular(25),
+                            border:  Border.all(
+                              width: 3,
+                              color: simulatedController.firstAlternativeColor.value,
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Container(
-                                    // color: Colors.tealAccent,
-                                    margin: const EdgeInsets.all(5),
-                                    child: Text(
-                                      simulatedController.textFirstAlternative.value.toString(),
-                                      style: TextStyle(
-                                        fontFamily: 'AWS',
-                                        color: myDarkBlueColor,
-                                        fontWeight: FontWeight.normal,
-                                        overflow: TextOverflow.visible,
-                                        fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
-                                      ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  // color: Colors.tealAccent,
+                                  margin: const EdgeInsets.all(5),
+                                  child: Text(
+                                    simulatedController.textFirstAlternative.value.toString(),
+                                    style: TextStyle(
+                                      fontFamily: 'AWS',
+                                      color: myDarkBlueColor,
+                                      fontWeight: FontWeight.normal,
+                                      overflow: TextOverflow.visible,
+                                      fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
                                     ),
                                   ),
                                 ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    color: Colors.white,
-                                    child: Checkbox(
-                                      activeColor: myGreenColor,
-                                      value: simulatedController.firstCheckboxIsSelected.value,
-                                      onChanged: (checked) {
-                                        simulatedController.firstCheckboxIsSelected.value = checked;
-                                        simulatedController.secondCheckboxIsSelected.value = false;
-                                        simulatedController.thirdCheckboxIsSelected.value = false;
-                                        simulatedController.fourthCheckboxIsSelected.value = false;
-                                        print('check box 1 ticado: ${simulatedController.firstCheckboxIsSelected.value.toString()}');
-                                      },
-                                    ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  color: Colors.white,
+                                  child: Checkbox(
+                                    activeColor: myGreenColor,
+                                    value: simulatedController.firstCheckboxIsSelected.value,
+                                    onChanged: (checked) {
+                                      simulatedController.firstCheckboxIsSelected.value = checked;
+                                      simulatedController.secondCheckboxIsSelected.value = false;
+                                      simulatedController.thirdCheckboxIsSelected.value = false;
+                                      simulatedController.fourthCheckboxIsSelected.value = false;
+                                      print('check box 1 ticado: ${simulatedController.firstCheckboxIsSelected.value.toString()}');
+                                    },
                                   ),
-                                )
-                              ],
-                            ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            width: double.infinity,
-                            alignment: Alignment.center,
-                            margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
-                            decoration: BoxDecoration(
-                              // color: Colors.purpleAccent,
-                              borderRadius: BorderRadius.circular(25),
-                              border:  Border.all(
-                                width: 3,
-                                color: simulatedController.secondAlternativeColor.value,
-                              ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            // color: Colors.purpleAccent,
+                            borderRadius: BorderRadius.circular(25),
+                            border:  Border.all(
+                              width: 3,
+                              color: simulatedController.secondAlternativeColor.value,
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Container(
-                                    // color: Colors.tealAccent,
-                                    margin: const EdgeInsets.all(5),
-                                    child: Text(
-                                      simulatedController.textSecondAlternative.value.toString(),
-                                      style: TextStyle(
-                                        fontFamily: 'AWS',
-                                        color: myDarkBlueColor,
-                                        fontWeight: FontWeight.normal,
-                                        overflow: TextOverflow.visible,
-                                        fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
-                                      ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  // color: Colors.tealAccent,
+                                  margin: const EdgeInsets.all(5),
+                                  child: Text(
+                                    simulatedController.textSecondAlternative.value.toString(),
+                                    style: TextStyle(
+                                      fontFamily: 'AWS',
+                                      color: myDarkBlueColor,
+                                      fontWeight: FontWeight.normal,
+                                      overflow: TextOverflow.visible,
+                                      fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
                                     ),
                                   ),
                                 ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    color: Colors.white,
-                                    child: Checkbox(
-                                      activeColor: myGreenColor,
-                                      value: simulatedController.secondCheckboxIsSelected.value,
-                                      onChanged: (checked) {
-                                        simulatedController.secondCheckboxIsSelected.value = checked;
-                                        simulatedController.firstCheckboxIsSelected.value = false;
-                                        simulatedController.thirdCheckboxIsSelected.value = false;
-                                        simulatedController.fourthCheckboxIsSelected.value = false;
-                                        print('check box 2 ticado: ${simulatedController.secondCheckboxIsSelected.value.toString()}');
-                                      },
-                                    ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  color: Colors.white,
+                                  child: Checkbox(
+                                    activeColor: myGreenColor,
+                                    value: simulatedController.secondCheckboxIsSelected.value,
+                                    onChanged: (checked) {
+                                      simulatedController.secondCheckboxIsSelected.value = checked;
+                                      simulatedController.firstCheckboxIsSelected.value = false;
+                                      simulatedController.thirdCheckboxIsSelected.value = false;
+                                      simulatedController.fourthCheckboxIsSelected.value = false;
+                                      print('check box 2 ticado: ${simulatedController.secondCheckboxIsSelected.value.toString()}');
+                                    },
                                   ),
-                                )
-                              ],
-                            ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            width: double.infinity,
-                            alignment: Alignment.center,
-                            margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
-                            decoration: BoxDecoration(
-                              // color: Colors.yellow,
-                              borderRadius: BorderRadius.circular(25),
-                              border:  Border.all(
-                                width: 3,
-                                color: simulatedController.thirdAlternativeColor.value,
-                              ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            // color: Colors.yellow,
+                            borderRadius: BorderRadius.circular(25),
+                            border:  Border.all(
+                              width: 3,
+                              color: simulatedController.thirdAlternativeColor.value,
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Container(
-                                    // color: Colors.lightGreen,
-                                    margin: const EdgeInsets.all(5),
-                                    child: Text(
-                                      simulatedController.textThirdAlternative.value.toString(),
-                                      style: TextStyle(
-                                        fontFamily: 'AWS',
-                                        color: myDarkBlueColor,
-                                        fontWeight: FontWeight.normal,
-                                        overflow: TextOverflow.visible,
-                                        fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
-                                      ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  // color: Colors.lightGreen,
+                                  margin: const EdgeInsets.all(5),
+                                  child: Text(
+                                    simulatedController.textThirdAlternative.value.toString(),
+                                    style: TextStyle(
+                                      fontFamily: 'AWS',
+                                      color: myDarkBlueColor,
+                                      fontWeight: FontWeight.normal,
+                                      overflow: TextOverflow.visible,
+                                      fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
                                     ),
                                   ),
                                 ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    color: Colors.white,
-                                    child: Checkbox(
-                                      activeColor: myGreenColor,
-                                      value: simulatedController.thirdCheckboxIsSelected.value,
-                                      onChanged: (checked) {
-                                        simulatedController.thirdCheckboxIsSelected.value = checked;
-                                        simulatedController.firstCheckboxIsSelected.value = false;
-                                        simulatedController.secondCheckboxIsSelected.value = false;
-                                        simulatedController.fourthCheckboxIsSelected.value = false;
-                                        print('check box 3 ticado: ${simulatedController.thirdCheckboxIsSelected.value.toString()}');
-                                      },
-                                    ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  color: Colors.white,
+                                  child: Checkbox(
+                                    activeColor: myGreenColor,
+                                    value: simulatedController.thirdCheckboxIsSelected.value,
+                                    onChanged: (checked) {
+                                      simulatedController.thirdCheckboxIsSelected.value = checked;
+                                      simulatedController.firstCheckboxIsSelected.value = false;
+                                      simulatedController.secondCheckboxIsSelected.value = false;
+                                      simulatedController.fourthCheckboxIsSelected.value = false;
+                                      print('check box 3 ticado: ${simulatedController.thirdCheckboxIsSelected.value.toString()}');
+                                    },
                                   ),
-                                )
-                              ],
-                            ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                        Expanded(
-                          flex: 1,
-                          child: Container(
-                            width: double.infinity,
-                            alignment: Alignment.center,
-                            margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
-                            decoration: BoxDecoration(
-                              // color: Colors.black54,
-                              borderRadius: BorderRadius.circular(25),
-                              border:  Border.all(
-                                width: 3,
-                                color: simulatedController.fourthAlternativeColor.value,
-                              ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          margin: const EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 5),
+                          decoration: BoxDecoration(
+                            // color: Colors.black54,
+                            borderRadius: BorderRadius.circular(25),
+                            border:  Border.all(
+                              width: 3,
+                              color: simulatedController.fourthAlternativeColor.value,
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Container(
-                                    // color: Colors.tealAccent,
-                                    margin: const EdgeInsets.all(5),
-                                    child: Text(
-                                      simulatedController.textFourthAlternative.value.toString(),
-                                      style: TextStyle(
-                                        fontFamily: 'AWS',
-                                        color: myDarkBlueColor,
-                                        fontWeight: FontWeight.normal,
-                                        overflow: TextOverflow.visible,
-                                        fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
-                                      ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  // color: Colors.tealAccent,
+                                  margin: const EdgeInsets.all(5),
+                                  child: Text(
+                                    simulatedController.textFourthAlternative.value.toString(),
+                                    style: TextStyle(
+                                      fontFamily: 'AWS',
+                                      color: myDarkBlueColor,
+                                      fontWeight: FontWeight.normal,
+                                      overflow: TextOverflow.visible,
+                                      fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
                                     ),
                                   ),
                                 ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    color: Colors.white,
-                                    child: Checkbox(
-                                      activeColor: myGreenColor,
-                                      value: simulatedController.fourthCheckboxIsSelected.value,
-                                      onChanged: (checked) {
-                                        simulatedController.fourthCheckboxIsSelected.value = checked;
-                                        simulatedController.firstCheckboxIsSelected.value = false;
-                                        simulatedController.secondCheckboxIsSelected.value = false;
-                                        simulatedController.thirdCheckboxIsSelected.value = false;
-                                        print('check box 4 ticado: ${simulatedController.fourthCheckboxIsSelected.value.toString()}');
-                                      },
-                                    ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  color: Colors.white,
+                                  child: Checkbox(
+                                    activeColor: myGreenColor,
+                                    value: simulatedController.fourthCheckboxIsSelected.value,
+                                    onChanged: (checked) {
+                                      simulatedController.fourthCheckboxIsSelected.value = checked;
+                                      simulatedController.firstCheckboxIsSelected.value = false;
+                                      simulatedController.secondCheckboxIsSelected.value = false;
+                                      simulatedController.thirdCheckboxIsSelected.value = false;
+                                      print('check box 4 ticado: ${simulatedController.fourthCheckboxIsSelected.value.toString()}');
+                                    },
                                   ),
-                                )
-                              ],
-                            ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
-                      ],
-                    )
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Expanded(
@@ -399,6 +452,14 @@ class _SimulatedState extends State<Simulated> {
     );
   }
 
+  Widget noTimer() {
+    return Container();
+  }
+
+  Widget noBanner() {
+    return Container();
+  }
+
   Widget myBannerUnity() {
     return UnityBannerAd(
       placementId: 'Banner_Android',
@@ -412,10 +473,6 @@ class _SimulatedState extends State<Simulated> {
         print('Banner failed to load');
       },
     );
-  }
-
-  Widget noBanner() {
-    return Container();
   }
 
   Widget myCircularProgressIndicator(BuildContext context, Color color) {
@@ -433,6 +490,5 @@ class _SimulatedState extends State<Simulated> {
     simulatedController.resetAccountants();
     print('DISPOSED SIMULATED SCREEN');
   }
-
 
 }

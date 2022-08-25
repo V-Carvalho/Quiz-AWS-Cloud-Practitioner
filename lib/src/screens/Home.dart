@@ -20,7 +20,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     // Realizando conexão com a Google Play Console - IAP
-    myInAppPurchase.initConnectionSubscriptionStore(context).whenComplete(() {});
+    myInAppPurchase.initConnectionSubscriptionStore(context);
   }
 
   @override

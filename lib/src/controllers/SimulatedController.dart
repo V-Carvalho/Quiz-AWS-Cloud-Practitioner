@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'package:awsquiz/src/screens/Score.dart';
@@ -9,19 +11,20 @@ import 'package:awsquiz/src/helpers/MyInAppPurchase.dart';
 
 class SimulatedController {
 
-  final adsIsLoaded = RxNotifier<bool>(false);
+  List<int> listIdQuestionsGenerated = [];
 
-  final bannerChecked = RxNotifier<bool>(false); // TODO: false
-  final showSimulated = RxNotifier<bool>(false); // TODO: true
+  final adsIsLoaded = RxNotifier<bool>(false);
+  final isSubscriber = RxNotifier<bool>(false); // TODO: false
+
+
+  final showSimulated = RxNotifier<bool>(false);
+
+  final minutes = RxNotifier<int>(0);
+  final seconds = RxNotifier<int>(0);
 
   final questionNumber = RxNotifier<int>(0);
-  final indexQuestion = RxNotifier<int>(0);
-  final indexAlternative = RxNotifier<int>(1);
-  final totalHits = RxNotifier<int>(0);
-  final totalErrors = RxNotifier<int>(0);
 
   final textQuestion = RxNotifier<String>('');
-
   final textFirstAlternative = RxNotifier<String>('');
   final textSecondAlternative = RxNotifier<String>('');
   final textThirdAlternative = RxNotifier<String>('');
@@ -33,7 +36,6 @@ class SimulatedController {
   final fourthAlternativeColor = RxNotifier<Color>(borderDefaultColor);
 
   final dialogIsOpen = RxNotifier<bool>(false);
-
   final responseIsCorrect = RxNotifier<bool>(false);
 
   final firstAlternativeIsCorrect = RxNotifier<bool>(false);
@@ -46,63 +48,112 @@ class SimulatedController {
   final thirdCheckboxIsSelected = RxNotifier<bool>(false);
   final fourthCheckboxIsSelected = RxNotifier<bool>(false);
 
+  Timer timer;
+
+  int totalHits = 0;
+  int totalErrors = 0;
+  int randomQuestionId = 0;
+
+  bool idQuestionIsUnique = false;
+
+  Random random = Random();
   static MySnackBar mySnackBar = MySnackBar();
   static MyInAppPurchase myInAppPurchase = MyInAppPurchase();
 
-  Future<void> loadQuestion(BuildContext context) async {
-
-    // Se questão atual for menor que 65, carrega uma nova questão
-    if (questionNumber.value < 65) {
-      questionNumber.value += 1;
-
-      // Mostrar loading enquanto carrega outra questão
-      showSimulated.value = false;
-
-      // Realizando um select no banco onde o retorno tem que ser a pergunta conforme o id
-      QuerySnapshot questions = await FirebaseFirestore.instance.collection('questionsSimulated')
-          .where('id', isEqualTo: questionNumber.value)
-          .get(const GetOptions(source: Source.serverAndCache));
-
-      textQuestion.value = questions.docs[0]['question'];
-
-      // Realizando um select no banco onde o retorno tem que ser as respostas conforme o id da questão
-      QuerySnapshot answers = await FirebaseFirestore.instance.collection('questionsSimulated')
-          .doc(questions.docs[0].id).collection('answers')
-          .get(const GetOptions(source: Source.serverAndCache));
-
-      // Percorrendo todos os docs(Respostas) retornados
-      for( var i = 0 ; i < answers.docs.length; i++ ) {
-        if (i == 0) {
-          textFirstAlternative.value = answers.docs[i]['answer'];
-          firstAlternativeIsCorrect.value = answers.docs[i]['correct'];
-        }
-        if (i == 1) {
-          textSecondAlternative.value = answers.docs[i]['answer'];
-          secondAlternativeIsCorrect.value = answers.docs[i]['correct'];
-        }
-        if (i == 2) {
-          textThirdAlternative.value = answers.docs[i]['answer'];
-          thirdAlternativeIsCorrect.value = answers.docs[i]['correct'];
-        }
-        if (i == 3) {
-          textFourthAlternative.value = answers.docs[i]['answer'];
-          fourthAlternativeIsCorrect.value = answers.docs[i]['correct'];
-        }
+  void timerSimulated(BuildContext context) {
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      seconds.value++;
+      if (seconds.value == 60) {
+        minutes.value++;
+        seconds.value = 0;
       }
+      if (minutes.value == 90) { // TODO: 90
+        timer.cancel();
+        minutes.value = 0;
+        mySnackBar.showSnackBar(context, 'Tempo esgotado', 3);
+      }
+    });
+  }
 
-      // Mostrar simulado, questão já carregada
-      showSimulated.value = true;
+  Future<int> sortQuestion() async {
+    idQuestionIsUnique = false;
 
+    // Pegando o total de questões que tem no firebase
+    QuerySnapshot totalDatabaseQuestions = await FirebaseFirestore.instance.collection('questionsSimulated')
+        .get(const GetOptions(source: Source.serverAndCache));
+
+    // Verificando se essa questão ja saiu p/ não haver questão repetida durante o simulado
+    while(idQuestionIsUnique == false){
+      // Escolhendo uma questão aleatoriamente dentre o total de questões que tem no firebase
+      randomQuestionId = random.nextInt(totalDatabaseQuestions.docs.length) + 1;
+
+      // Verificando se a questão sorteada, caso ja tenha sido sorteada gerar outra
+      if (!listIdQuestionsGenerated.contains(randomQuestionId)){
+        idQuestionIsUnique = true;
+        listIdQuestionsGenerated.add(randomQuestionId);
+      }
+    }
+
+    return randomQuestionId;
+  }
+
+  Future<void> loadQuestion(BuildContext context) async {
+    // verificando se já foram carregadas as 65 questões
+    if (questionNumber.value < 65) {
+      questionNumber.value++;
+
+      // Sorteando uma questão
+      sortQuestion().then((id) async {
+
+        // Mostrar loading enquanto carrega outra questão
+        showSimulated.value = false;
+
+        // Realizando um select no banco onde o retorno tem que ser a pergunta conforme o id
+        QuerySnapshot questions = await FirebaseFirestore.instance.collection('questionsSimulated')
+            .where('id', isEqualTo: id)
+            .get(const GetOptions(source: Source.server));
+
+        // Atribuindo texto da questão na variavel
+        textQuestion.value = questions.docs[0]['question'];
+
+        // Realizando um select no banco onde o retorno tem que ser as respostas conforme o id da questão
+        QuerySnapshot answers = await FirebaseFirestore.instance.collection('questionsSimulated')
+            .doc(questions.docs[0].id).collection('answers')
+            .get(const GetOptions(source: Source.serverAndCache));
+
+        // Percorrendo todos os docs(Respostas) retornados e atribuindo as variaveis
+        for( var i = 0 ; i < answers.docs.length; i++ ) {
+          if (i == 0) {
+            textFirstAlternative.value = answers.docs[i]['answer'];
+            firstAlternativeIsCorrect.value = answers.docs[i]['correct'];
+          }
+          if (i == 1) {
+            textSecondAlternative.value = answers.docs[i]['answer'];
+            secondAlternativeIsCorrect.value = answers.docs[i]['correct'];
+          }
+          if (i == 2) {
+            textThirdAlternative.value = answers.docs[i]['answer'];
+            thirdAlternativeIsCorrect.value = answers.docs[i]['correct'];
+          }
+          if (i == 3) {
+            textFourthAlternative.value = answers.docs[i]['answer'];
+            fourthAlternativeIsCorrect.value = answers.docs[i]['correct'];
+          }
+        }
+
+        // Mostrar simulado, questão já carregada
+        showSimulated.value = true;
+
+      });
     } else {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Score(
-          totalHits: totalHits.value,
-          totalErrors: totalErrors.value,
+          totalHits: totalHits,
+          totalErrors: totalErrors,
         )),
       );
     }
-
   }
 
   void validateForm(BuildContext context) {
@@ -115,7 +166,7 @@ class SimulatedController {
     ) {
       validateIsCorrect(context);
     } else {
-      mySnackBar.showSnackBar(context, 'Escolha uma alternativa!');
+      mySnackBar.showSnackBar(context, 'Escolha uma alternativa!', 1);
     }
   }
 
@@ -189,6 +240,7 @@ class SimulatedController {
 
   }
 
+  // Resetando as variaveis do formulário sempre que uma nova questão é gerada
   void resetForm() {
     // Resetando variavel que valida questão
     responseIsCorrect.value = false;
@@ -206,14 +258,18 @@ class SimulatedController {
     fourthAlternativeColor.value = borderDefaultColor;
   }
 
+  // Resetando as variaveis de controle quando o simulado for encerrado
   void resetAccountants() {
-    // Resetando variaveis com os index do array de questões
-    indexQuestion.value = 0;
-    indexAlternative.value = 1;
+    // Cancelando o timer instanciado
+    timer.cancel();
 
     // Resetando variaveis com o total de erros e acertos
-    totalHits.value = 0;
-    totalErrors.value = 0;
+    totalHits = 0;
+    totalErrors = 0;
+
+    // Resetando variaveis do cronômetro
+    seconds.value = 0;
+    minutes.value = 0;
 
     // Resetando variavel que controla em qual questão o usuarios esta | 1/65...
     questionNumber.value = 0;
@@ -321,7 +377,8 @@ class SimulatedController {
 
     // Somando a qtd de respostas corretas
     if (responseIsCorrect.value == true) {
-      totalHits.value += 1;
+      totalHits++;
+      print('Total de acertos: $totalHits');
       resetForm();
       indicateSignature(context);
     }
@@ -333,7 +390,8 @@ class SimulatedController {
 
     // Somando a qtd de respostas erradas
     if (responseIsCorrect.value == false) {
-      totalErrors.value += 1;
+      totalErrors++;
+      print('Tota de erros: $totalErrors');
       resetForm();
       indicateSignature(context);
     }
@@ -443,12 +501,12 @@ class SimulatedController {
         questionNumber.value == 25 || questionNumber.value == 30
     ) {
       // Verificando se é assinante
-      myInAppPurchase.checkStatusSubscription().then((isSubscriber) {
+      myInAppPurchase.checkStatusSubscription().then((status) {
         // Se for assinante não mostra modal de assinatura
-        if(isSubscriber == true) {
+        if(status == true) {
           loadQuestion(context);
-          // Removendo o banner se o usuario passou a ser assinante
-          bannerChecked.value = true;
+          // Se o usuario passou a ser assinante
+          isSubscriber.value = true; // Removendo o banner da tela e mostrando o timer
         } else {
           myModalPremiumSubscription(context);
         }
@@ -545,7 +603,7 @@ class SimulatedController {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Timer durante os simulados (Em breve).',
+                      'Timer durante os simulados.',
                       style: TextStyle(
                         fontFamily: 'AWS',
                         color: myRedColor,
@@ -568,7 +626,7 @@ class SimulatedController {
                         alignment: Alignment.center,
                       ),
                       child: Text(
-                        'Seja PREMIUM por apenas R\$ 9,99',
+                        'Seja PREMIUM por apenas R\$ 5,99',
                         style: TextStyle(
                           fontFamily: 'AWS',
                           color: myRedColor,

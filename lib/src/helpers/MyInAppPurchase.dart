@@ -37,7 +37,7 @@ class MyInAppPurchase {
 
     // Listener - disparado quando ocorre algo de errado no momento da compra
     purchaseErrorSubscription = FlutterInappPurchase.purchaseError.listen((purchaseError) {
-      mySnackBar.showSnackBar(context, 'Falha ao processar assinatura!');
+      mySnackBar.showSnackBar(context, 'Falha ao processar assinatura!', 1);
     });
   }
 
@@ -46,7 +46,7 @@ class MyInAppPurchase {
     subscriptionsAvailableForSale = await FlutterInappPurchase.instance.getSubscriptions(['premium_access']);
 
     if (subscriptionsAvailableForSale.length == 0) {
-      mySnackBar.showSnackBar(context, 'Serviço indisponível');
+      mySnackBar.showSnackBar(context, 'Serviço indisponível', 1);
     } else {
       buySubscription(context, subscriptionsAvailableForSale[0].productId);
     }
@@ -71,9 +71,9 @@ class MyInAppPurchase {
     print(statusTransaction['code']);
 
     if (statusTransaction['code'] == 'OK') {
-      mySnackBar.showSnackBar(context, 'Parabéns, você é um usuário PREMIUM!');
+      mySnackBar.showSnackBar(context, 'Parabéns, você é um usuário PREMIUM!', 1);
     } else {
-      mySnackBar.showSnackBar(context, 'Falha ao processar assinatura!');
+      mySnackBar.showSnackBar(context, 'Falha ao processar assinatura!', 1);
     }
   }
 
