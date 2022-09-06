@@ -67,7 +67,7 @@ class SimulatedController {
         minutes.value++;
         seconds.value = 0;
       }
-      if (minutes.value == 90) { // TODO: 90
+      if (minutes.value == 90) {
         timer.cancel();
         minutes.value = 0;
         mySnackBar.showSnackBar(context, 'Tempo esgotado', 3);
@@ -78,7 +78,7 @@ class SimulatedController {
   Future<int> sortQuestion() async {
     idQuestionIsUnique = false;
 
-    // Pegando o total de questões que tem no firebase
+    // Pegando todas as questões que tem no firebase
     QuerySnapshot totalDatabaseQuestions = await FirebaseFirestore.instance.collection('questionsSimulated')
         .get(const GetOptions(source: Source.serverAndCache));
 
@@ -87,10 +87,11 @@ class SimulatedController {
       // Escolhendo uma questão aleatoriamente dentre o total de questões que tem no firebase
       randomQuestionId = random.nextInt(totalDatabaseQuestions.docs.length) + 1;
 
-      // Verificando se a questão sorteada, caso ja tenha sido sorteada gerar outra
+      // Verificando as questões sorteadas, caso ja tenha sido sorteada gerar outra
       if (!listIdQuestionsGenerated.contains(randomQuestionId)){
         idQuestionIsUnique = true;
         listIdQuestionsGenerated.add(randomQuestionId);
+        debugPrint('QUESTÃO SORTEADA: $randomQuestionId');
       }
     }
 
@@ -98,12 +99,14 @@ class SimulatedController {
   }
 
   Future<void> loadQuestion(BuildContext context) async {
-    // verificando se já foram carregadas as 65 questões
+    // Verificando se as 65 questões ja foram realizadas
     if (questionNumber.value < 65) {
-      questionNumber.value++;
 
       // Sorteando uma questão
       sortQuestion().then((id) async {
+
+        // Contabilizando a qtd de questões que já foram realizadas
+        questionNumber.value++;
 
         // Mostrar loading enquanto carrega outra questão
         showSimulated.value = false;
@@ -146,7 +149,7 @@ class SimulatedController {
 
       });
     } else {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Score(
           totalHits: totalHits,
@@ -194,7 +197,7 @@ class SimulatedController {
       dialogResponseCorrect(context);
     }
 
-    // quando usuario errar entrará no if
+    // quando usuario errar entrará nesse if
     if (responseIsCorrect.value == false) {
       validateIsWrong(context);
     }
@@ -202,77 +205,41 @@ class SimulatedController {
 
   // Verificando se o usuario errou
   void validateIsWrong(BuildContext context) {
-    /*verificando qual alternativa o usuario escolheu e pintando de vermelho,
+    /*Verificando qual alternativa o usuario escolheu e pintando de vermelho,
      pois sua escolha esta errada
     */
     if (firstCheckboxIsSelected.value == true) {
       firstAlternativeColor.value = borderWrongColor;
-      dialogResponseWrong(context);
     }
     if (secondCheckboxIsSelected.value == true) {
       secondAlternativeColor.value = borderWrongColor;
-      dialogResponseWrong(context);
     }
     if (thirdCheckboxIsSelected.value == true) {
       thirdAlternativeColor.value = borderWrongColor;
-      dialogResponseWrong(context);
     }
     if (fourthCheckboxIsSelected.value == true) {
       fourthAlternativeColor.value = borderWrongColor;
-      dialogResponseWrong(context);
     }
 
     /*Verificando qual alternativa correta e pintando de verde,
-     mostrando ao usuario qual a resposta corrreta
+     para mostrar ao usuario qual a resposta correta
     */
     if (firstAlternativeIsCorrect.value == true) {
       firstAlternativeColor.value = borderCorrectColor;
+      dialogResponseWrong(context, textFirstAlternative.value);
     }
     if (secondAlternativeIsCorrect.value == true) {
       secondAlternativeColor.value = borderCorrectColor;
+      dialogResponseWrong(context, textSecondAlternative.value);
     }
     if (thirdAlternativeIsCorrect.value == true) {
       thirdAlternativeColor.value = borderCorrectColor;
+      dialogResponseWrong(context, textThirdAlternative.value);
     }
     if (fourthAlternativeIsCorrect.value == true) {
       fourthAlternativeColor.value = borderCorrectColor;
+      dialogResponseWrong(context, textFourthAlternative.value);
     }
-
-  }
-
-  // Resetando as variaveis do formulário sempre que uma nova questão é gerada
-  void resetForm() {
-    // Resetando variavel que valida questão
-    responseIsCorrect.value = false;
-
-    // Tirando a seleção dos checkboxs
-    firstCheckboxIsSelected.value = false;
-    secondCheckboxIsSelected.value = false;
-    thirdCheckboxIsSelected.value = false;
-    fourthCheckboxIsSelected.value = false;
-
-    // Voltando a cor da borda das alternativas para a cor padrão
-    firstAlternativeColor.value = borderDefaultColor;
-    secondAlternativeColor.value = borderDefaultColor;
-    thirdAlternativeColor.value = borderDefaultColor;
-    fourthAlternativeColor.value = borderDefaultColor;
-  }
-
-  // Resetando as variaveis de controle quando o simulado for encerrado
-  void resetAccountants() {
-    // Cancelando o timer instanciado
-    timer.cancel();
-
-    // Resetando variaveis com o total de erros e acertos
-    totalHits = 0;
-    totalErrors = 0;
-
-    // Resetando variaveis do cronômetro
-    seconds.value = 0;
-    minutes.value = 0;
-
-    // Resetando variavel que controla em qual questão o usuarios esta | 1/65...
-    questionNumber.value = 0;
   }
 
   Future<void> dialogResponseCorrect(BuildContext context) async {
@@ -293,7 +260,7 @@ class SimulatedController {
             child: ListBody(
               children: const <Widget>[
                 Text(
-                  'Parabéns, você acertou 👏!',
+                  'Parabéns, continue assim 👏!',
                   style: TextStyle(
                     fontFamily: 'AWS',
                     color: myDarkBlueColor,
@@ -323,14 +290,14 @@ class SimulatedController {
     );
   }
 
-  Future<void> dialogResponseWrong(BuildContext context) async {
+  Future<void> dialogResponseWrong(BuildContext context, String responseCorrect) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            'Errou  😢',
+            'Você Errou  😢',
             style: TextStyle(
               fontFamily: 'AWS',
               color: myRedColor,
@@ -339,10 +306,10 @@ class SimulatedController {
           ),
           content: SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Text(
-                  'Ops, infelizmente essa você errou, continue estudando!',
-                  style: TextStyle(
+                  'A resposta correta é: $responseCorrect',
+                  style: const TextStyle(
                     fontFamily: 'AWS',
                     color: myDarkBlueColor,
                     fontWeight: FontWeight.bold,
@@ -378,7 +345,6 @@ class SimulatedController {
     // Somando a qtd de respostas corretas
     if (responseIsCorrect.value == true) {
       totalHits++;
-      print('Total de acertos: $totalHits');
       resetForm();
       indicateSignature(context);
     }
@@ -391,114 +357,19 @@ class SimulatedController {
     // Somando a qtd de respostas erradas
     if (responseIsCorrect.value == false) {
       totalErrors++;
-      print('Tota de erros: $totalErrors');
       resetForm();
       indicateSignature(context);
     }
   }
 
-  Future<bool> closeSimulated(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Container(
-            alignment: Alignment.center,
-            child: Text(
-              'Encerrar Simulado?',
-              style: TextStyle(
-                fontFamily: 'AWS',
-                fontWeight: FontWeight.normal,
-                color: const Color(0xFF182A50),
-                fontSize: MediaQuery.of(context).size.width * 4 / 100,
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Não',
-                style: TextStyle(
-                  fontFamily: 'AWS',
-                  color: myDarkBlueColor,
-                  fontWeight: FontWeight.normal,
-                  fontSize: MediaQuery.of(context).size.width * 4 / 100,
-                ),
-              ),
-              onPressed: (){
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Sim',
-                style: TextStyle(
-                  fontFamily: 'AWS',
-                  color: myDarkBlueColor,
-                  fontWeight: FontWeight.normal,
-                  fontSize: MediaQuery.of(context).size.width * 4 / 100,
-                ),
-              ),
-              onPressed: (){
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> loadRewardAdsUnity() async {
-    // Carregando um anuncio
-    UnityAds.load(
-      placementId: 'Rewarded_Android',
-      onComplete: (placementId) {
-        adsIsLoaded.value = true;
-      } ,
-      onFailed: (placementId, error, message) {
-        adsIsLoaded.value = false;
-      },
-    );
-  }
-
-  Future<void> showRewardAdsUnity() async {
-    // Se o anuncio estiver carregado mostrar anuncio
-    if (adsIsLoaded.value == true) {
-      UnityAds.showVideoAd(
-        placementId: 'Rewarded_Android',
-        onStart: (placementId) {
-          loadRewardAdsUnity();
-          showSimulated.value = true;
-        },
-        onClick: (placementId) {
-          loadRewardAdsUnity();
-          showSimulated.value = true;
-        },
-        onSkipped: (placementId) {
-          loadRewardAdsUnity();
-          showSimulated.value = true;
-        },
-        onComplete: (placementId) {
-          loadRewardAdsUnity();
-          showSimulated.value = true;
-        },
-        onFailed: (placementId, error, message) {
-          loadRewardAdsUnity();
-          showSimulated.value = true;
-        },
-      );
-    } else {
-      loadRewardAdsUnity();
-      showSimulated.value = true;
-    }
-  }
-
   void indicateSignature(BuildContext context) {
     // Verificando se está na hora de indicar uma assinatura
-    if (questionNumber.value == 5 || questionNumber.value == 10 ||
+    if (questionNumber.value == 5  || questionNumber.value == 10 ||
         questionNumber.value == 15 || questionNumber.value == 20 ||
-        questionNumber.value == 25 || questionNumber.value == 30
+        questionNumber.value == 25 || questionNumber.value == 30 ||
+        questionNumber.value == 35 || questionNumber.value == 40 ||
+        questionNumber.value == 45 || questionNumber.value == 50 ||
+        questionNumber.value == 55 || questionNumber.value == 60
     ) {
       // Verificando se é assinante
       myInAppPurchase.checkStatusSubscription().then((status) {
@@ -578,13 +449,13 @@ class SimulatedController {
                 Row(
                   children: [
                     Icon(
-                      Icons.assignment,
+                      Icons.access_time,
                       color: myDarkBlueColor,
                       size: MediaQuery.of(context).size.width * 8 / 100,
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Histórico dos simulados (Em breve).',
+                      'Timer durante os simulados.',
                       style: TextStyle(
                         fontFamily: 'AWS',
                         color: myRedColor,
@@ -597,13 +468,13 @@ class SimulatedController {
                 Row(
                   children: [
                     Icon(
-                      Icons.access_time,
+                      Icons.assignment,
                       color: myDarkBlueColor,
                       size: MediaQuery.of(context).size.width * 8 / 100,
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Timer durante os simulados.',
+                      'Histórico dos simulados (Em breve).',
                       style: TextStyle(
                         fontFamily: 'AWS',
                         color: myRedColor,
@@ -626,7 +497,7 @@ class SimulatedController {
                         alignment: Alignment.center,
                       ),
                       child: Text(
-                        'Seja PREMIUM por apenas R\$ 5,99',
+                        'Seja PREMIUM por apenas R\$ 7,99',
                         style: TextStyle(
                           fontFamily: 'AWS',
                           color: myRedColor,
@@ -686,6 +557,138 @@ class SimulatedController {
         );
       },
     );
+  }
+
+  Future<bool> closeSimulated(BuildContext context) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Container(
+            alignment: Alignment.center,
+            child: Text(
+              'Finalizar Simulado?',
+              style: TextStyle(
+                fontFamily: 'AWS',
+                fontWeight: FontWeight.normal,
+                color: const Color(0xFF182A50),
+                fontSize: MediaQuery.of(context).size.width * 4 / 100,
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Não',
+                style: TextStyle(
+                  fontFamily: 'AWS',
+                  color: myDarkBlueColor,
+                  fontWeight: FontWeight.normal,
+                  fontSize: MediaQuery.of(context).size.width * 4 / 100,
+                ),
+              ),
+              onPressed: (){
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Sim',
+                style: TextStyle(
+                  fontFamily: 'AWS',
+                  color: myDarkBlueColor,
+                  fontWeight: FontWeight.normal,
+                  fontSize: MediaQuery.of(context).size.width * 4 / 100,
+                ),
+              ),
+              onPressed: (){
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Resetando as variaveis do formulário sempre que uma nova questão é gerada
+  void resetForm() {
+    // Resetando variavel que valida questão
+    responseIsCorrect.value = false;
+
+    // Tirando a seleção dos checkboxs
+    firstCheckboxIsSelected.value = false;
+    secondCheckboxIsSelected.value = false;
+    thirdCheckboxIsSelected.value = false;
+    fourthCheckboxIsSelected.value = false;
+
+    // Voltando a cor da borda das alternativas para a cor padrão
+    firstAlternativeColor.value = borderDefaultColor;
+    secondAlternativeColor.value = borderDefaultColor;
+    thirdAlternativeColor.value = borderDefaultColor;
+    fourthAlternativeColor.value = borderDefaultColor;
+  }
+
+  // Resetando as variaveis de controle quando o simulado for encerrado
+  void resetAccountants() {
+    // Cancelando o timer instanciado
+    timer.cancel();
+
+    // Resetando variaveis com o total de erros e acertos
+    totalHits = 0;
+    totalErrors = 0;
+
+    // Resetando variaveis do cronômetro
+    seconds.value = 0;
+    minutes.value = 0;
+
+    // Resetando variavel que controla em qual questão o usuarios esta | 1/65...
+    questionNumber.value = 0;
+  }
+
+  Future<void> loadRewardAdsUnity() async {
+    // Carregando um anuncio
+    UnityAds.load(
+      placementId: 'Rewarded_Android',
+      onComplete: (placementId) {
+        adsIsLoaded.value = true;
+      } ,
+      onFailed: (placementId, error, message) {
+        adsIsLoaded.value = false;
+      },
+    );
+  }
+
+  Future<void> showRewardAdsUnity() async {
+    // Se o anuncio estiver carregado mostrar anuncio
+    if (adsIsLoaded.value == true) {
+      UnityAds.showVideoAd(
+        placementId: 'Rewarded_Android',
+        onStart: (placementId) {
+          loadRewardAdsUnity();
+          showSimulated.value = true;
+        },
+        onClick: (placementId) {
+          loadRewardAdsUnity();
+          showSimulated.value = true;
+        },
+        onSkipped: (placementId) {
+          loadRewardAdsUnity();
+          showSimulated.value = true;
+        },
+        onComplete: (placementId) {
+          loadRewardAdsUnity();
+          showSimulated.value = true;
+        },
+        onFailed: (placementId, error, message) {
+          loadRewardAdsUnity();
+          showSimulated.value = true;
+        },
+      );
+    } else {
+      loadRewardAdsUnity();
+      showSimulated.value = true;
+    }
   }
 
 }

@@ -464,13 +464,13 @@ class _SimulatedState extends State<Simulated> {
     return UnityBannerAd(
       placementId: 'Banner_Android',
       onLoad: (placementId) {
-        print('Banner loaded: $placementId');
+        debugPrint('Banner loaded: $placementId');
       } ,
       onClick: (placementId) {
-        print('Banner clicked: $placementId');
+        debugPrint('Banner clicked: $placementId');
       } ,
       onFailed: (placementId, error, message) {
-        print('Banner failed to load');
+        debugPrint('Banner failed to load');
       },
     );
   }

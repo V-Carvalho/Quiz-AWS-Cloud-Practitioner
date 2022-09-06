@@ -24,9 +24,9 @@ class _ScoreState extends State<Score> {
   void initState() {
     super.initState();
 
-    myInAppPurchase.checkStatusSubscription().then((isSubscriber) {
-      if(isSubscriber == true) {
-        scoreController.bannerChecked.value = true;
+    myInAppPurchase.checkStatusSubscription().then((status) {
+      if(status == true) {
+        scoreController.isSubscriber.value = true;
       }
     });
 
@@ -38,18 +38,23 @@ class _ScoreState extends State<Score> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: myDarkBlueColor,
-      body: RxBuilder(
-        builder: (BuildContext context){
-          return SafeArea(
-            child: scoreController.calculationIsFinished.value
-              ?
-            myBody(context)
-              :
-            myCircularProgressIndicator(context, myWhiteColor),
-          );
-        },
+    return WillPopScope(
+      onWillPop: () {
+        return scoreController.closeSimulated(context);
+      },
+      child: Scaffold(
+        backgroundColor: myDarkBlueColor,
+        body: RxBuilder(
+          builder: (BuildContext context){
+            return SafeArea(
+              child: scoreController.calculationIsFinished.value
+                ?
+              myBody(context)
+                :
+              myCircularProgressIndicator(context, myWhiteColor),
+            );
+          },
+        ),
       ),
     );
   }
@@ -73,7 +78,7 @@ class _ScoreState extends State<Score> {
               // color: Colors.purpleAccent,
               alignment: Alignment.center,
               margin: const EdgeInsets.only(top:10, bottom: 10),
-              child: scoreController.bannerChecked.value
+              child: scoreController.isSubscriber.value
                 ?
               noBanner()
                 :
@@ -178,7 +183,39 @@ class _ScoreState extends State<Score> {
                     ),
                   ),
                 ],
-              )
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(
+              // color: Colors.purple,
+              alignment: Alignment.center,
+              margin: const EdgeInsets.only(top: 10, bottom: 10),
+              child: ElevatedButton(
+                child: Text(
+                  'Finalizar Simulado',
+                  style: TextStyle(
+                    fontFamily: 'AWS',
+                    color: myDarkBlueColor,
+                    fontWeight: FontWeight.bold,
+                    overflow: TextOverflow.visible,
+                    fontSize: MediaQuery.of(context).size.height * 1.8 / 100,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  primary: myOrangeColor,
+                  padding: const EdgeInsets.only(top: 10, bottom: 10, left: 30, right: 30),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                  ),
+                ),
+                onPressed: () {
+                  scoreController.closeSimulated(context);
+                },
+              ),
             ),
           ),
           Expanded( // banner
@@ -187,7 +224,7 @@ class _ScoreState extends State<Score> {
               // color: Colors.purpleAccent,
               alignment: Alignment.center,
               margin: const EdgeInsets.only(top:10, bottom: 10),
-              child: scoreController.bannerChecked.value
+              child: scoreController.isSubscriber.value
                 ?
               noBanner()
                 :

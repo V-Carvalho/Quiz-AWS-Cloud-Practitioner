@@ -21,7 +21,7 @@ void main() async {
 
   // StartingUnityAdsSDK
   await UnityAds.init(
-    testMode: true, // TODO: ever false
+    testMode: false, // TODO: ever false
     gameId: gameId,
     onComplete:() {
       print('UNITY ADS - Initialization Complete');
